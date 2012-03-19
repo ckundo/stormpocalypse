@@ -1,4 +1,5 @@
 require 'httparty'
+require 'pp' # for debugging
 
 module Stormpocalypse
   class Radar
@@ -16,10 +17,13 @@ module Stormpocalypse
       @threats = []
       fetch_alerts.each do |alert|
         threat = Threat.new
-        threat.summary = alert['summary']
+        threat.summary = alert['summary'] # TODO: convert to sentence case
+        threat.category = alert['category']
+        threat.severity = alert['severity']
+        threat.locations = alert['areaDesc'].split('; ')
         @threats << threat
       end
-      
+      pp @threats
     end
 
     # Query National Weather Service for alerts by state
@@ -30,10 +34,13 @@ module Stormpocalypse
   end
 
   class Threat
-    attr_accessor :summary
+    attr_accessor :summary, :category, :severity, :locations
 
     def initialize
-      @summary = 'no summary'
+      @summary = 'unknown'
+      @category = 'met'
+      @severity = 'unknown'
+      @locations = []
     end
 
   end
