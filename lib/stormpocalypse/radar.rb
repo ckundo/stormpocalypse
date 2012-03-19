@@ -6,7 +6,7 @@ module Stormpocalypse
     
     # Initialize with a location (US state abbrev)
     # TODO: support multiple location types
-    def initialize(location)
+    def initialize(location = 'us')
       @location = location
       scan()
     end
