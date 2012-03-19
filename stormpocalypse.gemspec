@@ -4,8 +4,8 @@ require File.expand_path('../lib/stormpocalypse/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.authors       = ["Cameron Cundiff"]
   gem.email         = ["ckundo@gmail.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
+  gem.description   = %q{NOAA National Weather Service alerts.}
+  gem.summary       = %q{A wrapper for the NWS severe weather alert feed}
   gem.homepage      = ""
 
   gem.files         = `git ls-files`.split($\)
