@@ -6,7 +6,7 @@ module Stormpocalypse
     
     # Initialize with a location (US state abbrev)
     # TODO: support multiple location types
-    def initialize(location = 'us')
+    def initialize(location = 'ny')
       @location = location
       scan()
     end
@@ -14,17 +14,21 @@ module Stormpocalypse
     # Check for new threats
     def scan
       @threats = []
-      fetch_alerts.each do |alert|
-        threat = Threat.new
-        threat.summary = alert['summary'] # TODO: convert to sentence case
-        threat.description = alert['event']
-        threat.category = alert['category']
-        threat.instructions = alert['instructions'] || ''
-        threat.severity = alert['severity']
-        threat.certainty = alert['certainty']
-        threat.expires_at = DateTime.parse(alert['expires'])
-        threat.locations = alert['areaDesc'].split('; ')
-        @threats << threat
+      begin
+        fetch_alerts.each do |alert|
+          threat = Threat.new
+          threat.summary = alert['summary'] # TODO: convert to sentence case
+          threat.description = alert['event']
+          threat.category = alert['category']
+          threat.instructions = alert['instructions'] || ''
+          threat.severity = alert['severity']
+          threat.certainty = alert['certainty']
+          threat.expires_at = DateTime.parse(alert['expires'])
+          threat.locations = alert['areaDesc'].split('; ')
+          @threats << threat
+        end
+      rescue Exception => e
+        return
       end
     end
 
