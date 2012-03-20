@@ -17,10 +17,8 @@ module Stormpocalypse
       @threats = []
       feed = HTTParty.get("http://alerts.weather.gov/cap/#{@location}.atom", :format => :xml)['feed']
 
-      pp feed
-
       if feed['entry'].kind_of?(Array)
-        feed.each do |item|
+        feed['entry'].each do |item|
           process_threat(item)
         end
       else
@@ -31,7 +29,7 @@ module Stormpocalypse
     # Query National Weather Service for alerts by state
 
     def process_threat(item)
-      return if item['title'] == "There are no active watches, warnings or advisories"
+      return nil if item['summary'].eql?("There are no active watches, warnings or advisories")
 
       alert = HTTParty.get(item['id'], :format => :xml)['alert']['info']
       threat = Threat.new

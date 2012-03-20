@@ -6,7 +6,7 @@ describe Stormpocalypse::Radar do
     #stub_request(:get, "http://alerts.weather.gov/cap/us.atom").to_return(
       #lambda { |request| File.new("tmp/#{request.uri.host.to_s}.txt" ) }
     #)
-    @location = 'ny'
+    @location = 'ca'
     @radar = Stormpocalypse::Radar.new(@location)
   end
 
