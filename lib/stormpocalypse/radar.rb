@@ -1,4 +1,5 @@
 require 'httparty'
+require 'pp'
 
 module Stormpocalypse
   class Radar
@@ -14,36 +15,43 @@ module Stormpocalypse
     # Check for new threats
     def scan
       @threats = []
-      begin
-        fetch_alerts.each do |alert|
-          threat = Threat.new
-          threat.summary = alert['summary'] # TODO: convert to sentence case
-          threat.description = alert['event']
-          threat.category = alert['category']
-          threat.instructions = alert['instructions'] || ''
-          threat.severity = alert['severity']
-          threat.certainty = alert['certainty']
-          threat.expires_at = DateTime.parse(alert['expires'])
-          threat.locations = alert['areaDesc'].split('; ')
-          @threats << threat
+      feed = HTTParty.get("http://alerts.weather.gov/cap/#{@location}.atom", :format => :xml)['feed']
+
+      if feed['entry'].kind_of?(Array)
+        feed.each do |item|
+          process_threat(item)
         end
-      rescue Exception => e
-        return
+      else
+        process_threat(feed['entry'])
       end
     end
 
     # Query National Weather Service for alerts by state
-    def fetch_alerts
-      response = HTTParty.get("http://alerts.weather.gov/cap/#{@location}.atom", :format => :xml)
-      return Array(response.parsed_response['feed']['entry'])
+
+    def process_threat(item)
+      alert = HTTParty.get(item['id'], :format => :xml)['alert']['info']
+      pp alert
+
+      threat = Threat.new
+      threat.event = alert['event']
+      threat.summary = alert['headline']
+      threat.description = alert['description'] # TODO: convert to sentence case
+      threat.category = alert['category']
+      threat.instructions = alert['instructions'] || ''
+      threat.severity = alert['severity']
+      threat.certainty = alert['certainty']
+      threat.expires_at = DateTime.parse(alert['expires'])
+      threat.locations = alert['area']['areaDesc'].split('; ')
+      @threats << threat
     end
   end
 
   class Threat
-    attr_accessor :summary, :category, :severity, :certainty, :locations, :description,
-      :expires_at, :instructions
+    attr_accessor :event, :summary, :category, :severity, :certainty, :locations, 
+      :description, :expires_at, :instructions
 
     def initialize
+      @event = ''
       @summary = ''
       @description = ''
       @category = ''
