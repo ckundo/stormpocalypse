@@ -15,33 +15,31 @@ module Stormpocalypse
     # Check for new threats
     def scan
       @threats = []
-      feed = HTTParty.get("http://alerts.weather.gov/cap/#{@location}.atom", :format => :xml)['feed']
+      entry = HTTParty.get("http://alerts.weather.gov/cap/#{@location}.atom", 
+                           :format => :xml).fetch('feed').fetch('entry')
 
-      if feed['entry'].kind_of?(Array)
-        feed['entry'].each do |item|
-          process_threat(item)
+      if entry.kind_of?(Array)
+        entry.each do |item|
+          begin
+            process_threat(item)
+          rescue Exception => e
+            next
+          end
         end
       else
-        process_threat(feed['entry'])
+        begin
+          process_threat(entry)
+        rescue Exception => e
+          return
+        end
       end
     end
 
-    # Query National Weather Service for alerts by state
-
     def process_threat(item)
-      return nil if item['summary'].eql?("There are no active watches, warnings or advisories")
+      return nil if item.fetch('summary').eql?("There are no active watches, warnings or advisories")
 
-      alert = HTTParty.get(item['id'], :format => :xml)['alert']['info']
-      threat = Threat.new
-      threat.event = alert['event']
-      threat.summary = alert['headline']
-      threat.description = alert['description'] # TODO: convert to sentence case
-      threat.category = alert['category']
-      threat.instructions = alert['instructions'] || ''
-      threat.severity = alert['severity']
-      threat.certainty = alert['certainty']
-      threat.expires_at = DateTime.parse(alert['expires'])
-      threat.locations = alert['area']['areaDesc'].split('; ')
+      alert = HTTParty.get(item.fetch('id'), :format => :xml).fetch('alert').fetch('info')
+      threat = Threat.new(alert)
       @threats << threat
     end
   end
@@ -49,18 +47,17 @@ module Stormpocalypse
   class Threat
     attr_accessor :event, :summary, :category, :severity, :certainty, :locations, 
       :description, :expires_at, :instructions
-
-    def initialize
-      @event = ''
-      @summary = ''
-      @description = ''
-      @category = ''
-      @instructions = ''
-      @severity = ''
-      @certainty = ''
-      @expires_at = DateTime.new
-      @locations = []
+    
+    def initialize(alert)
+      @event = alert['event']
+      @summary = alert['headline']
+      @description = alert['description']
+      @category = alert['category']
+      @instructions = alert['instructions'] || ''
+      @severity = alert['severity']
+      @certainty = alert['certainty']
+      @expires_at = DateTime.parse(alert['expires'])
+      @locations = alert['area']['areaDesc'].split('; ')
     end
-
   end
 end
