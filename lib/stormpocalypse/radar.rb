@@ -39,16 +39,17 @@ module Stormpocalypse
       return nil if item.fetch('summary').eql?("There are no active watches, warnings or advisories")
 
       alert = HTTParty.get(item.fetch('id'), :format => :xml).fetch('alert').fetch('info')
-      threat = Threat.new(alert)
+      threat = Threat.new(alert, item.fetch('id'))
       @threats << threat
     end
   end
 
   class Threat
-    attr_accessor :event, :summary, :category, :severity, :certainty, :locations, 
+    attr_accessor :nws_id, :event, :summary, :category, :severity, :certainty, :urgency, :locations, 
       :description, :expires_at, :instructions
     
-    def initialize(alert)
+    def initialize(alert, id)
+      @nws_id = id
       @event = alert['event']
       @summary = alert['headline']
       @description = alert['description']
@@ -56,8 +57,18 @@ module Stormpocalypse
       @instructions = alert['instructions'] || ''
       @severity = alert['severity']
       @certainty = alert['certainty']
+      @urgency = alert['urgency']
       @expires_at = DateTime.parse(alert['expires'])
-      @locations = alert['area']['areaDesc'].split('; ')
+      @locations = []
+
+      geo = alert.fetch('area').fetch('geocode')
+      geo.each do |param|
+        if param.fetch('valueName') == 'FIPS6'
+          puts param
+          @locations << param.fetch('value')
+        end
+      end
+
     end
   end
 end
