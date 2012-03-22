@@ -64,11 +64,9 @@ module Stormpocalypse
       geo = alert.fetch('area').fetch('geocode')
       geo.each do |param|
         if param.fetch('valueName') == 'FIPS6'
-          puts param
           @locations << param.fetch('value')
         end
       end
-
     end
   end
 end
