@@ -46,9 +46,10 @@ module Stormpocalypse
 
   class Threat
     attr_accessor :nws_id, :event, :summary, :category, :severity, :certainty, :urgency, :locations, 
-      :description, :expires_at, :instructions
+      :description, :expires_at, :instructions, :state
     
     def initialize(alert, id)
+      @state = @location
       @nws_id = id
       @event = alert['event']
       @summary = alert['headline']
@@ -63,7 +64,7 @@ module Stormpocalypse
 
       geo = alert.fetch('area').fetch('geocode')
       geo.each do |param|
-        if param.fetch('valueName') == 'FIPS6'
+        if param.fetch('valueName') == 'UGC'
           @locations << param.fetch('value')
         end
       end
