@@ -52,6 +52,7 @@ module Stormpocalypse
       @nws_id = id
       @event = alert['event']
       @summary = alert['headline']
+      @status = alert['status']
       @description = alert['description']
       @category = alert['category']
       @instructions = alert['instructions'] || ''
@@ -60,7 +61,7 @@ module Stormpocalypse
       @urgency = alert['urgency']
       @expires_at = DateTime.parse(alert['expires'])
       @locations = []
-      @counties = alert['areaDesc'].split(', ')
+      @counties = alert.fetch('area').fetch('areaDesc').split('; ')
 
       geo = alert.fetch('area').fetch('geocode')
       geo.each do |param|
