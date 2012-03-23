@@ -46,7 +46,7 @@ module Stormpocalypse
 
   class Threat
     attr_accessor :nws_id, :event, :summary, :category, :severity, :certainty, :urgency, :locations, 
-      :description, :expires_at, :instructions
+      :description, :expires_at, :instructions, :counties
     
     def initialize(alert, id)
       @nws_id = id
@@ -60,7 +60,7 @@ module Stormpocalypse
       @urgency = alert['urgency']
       @expires_at = DateTime.parse(alert['expires'])
       @locations = []
-      @counties = []
+      @counties = alert['areaDesc'].split(', ')
 
       geo = alert.fetch('area').fetch('geocode')
       geo.each do |param|
